@@ -36,9 +36,15 @@
     button:hover {
       background-color: #c62855;
     }
-    p {
-      margin-top: 30px;
+    #result {
+      margin-top: 20px;
+      max-width: 600px;
+      word-wrap: break-word;
+      text-align: center;
+    }
+    a {
       color: green;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -46,19 +52,38 @@
   <h1>Instagram Reels Downloader</h1>
   <p>कृपया नीचे इंस्टाग्राम रील की लिंक डालें:</p>
   <input type="text" id="reelLink" placeholder="https://www.instagram.com/reel/..." />
-  <button onclick="downloadReel()">डाउनलोड करें</button>
+  <button onclick="getDownloadLink()">डाउनलोड लिंक प्राप्त करें</button>
+
+  <div id="result"></div>
 
   <script>
-    function downloadReel() {
+    function getDownloadLink() {
       const link = document.getElementById("reelLink").value.trim();
+      const resultBox = document.getElementById("result");
+      resultBox.innerHTML = "कृपया प्रतीक्षा करें...";
+
       if (link === "") {
         alert("कृपया कोई लिंक दर्ज करें");
+        resultBox.innerHTML = "";
         return;
       }
 
-      // Redirect लिंक बनाएं (igram.world पर)
-      const redirectUrl = `https://igram.world/en/dl?url=${encodeURIComponent(link)}`;
-      window.open(redirectUrl, "_blank");
+      fetch(`https://instagram-reel-api.onrender.com?url=${encodeURIComponent(link)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.download_link) {
+            resultBox.innerHTML = `
+              <p><strong>शीर्षक:</strong> ${data.title || "रील"}</p>
+              <p><a href="${data.download_link}" target="_blank">यहाँ क्लिक करें और वीडियो डाउनलोड करें</a></p>
+            `;
+          } else {
+            resultBox.innerHTML = "डाउनलोड लिंक प्राप्त नहीं हो सका। कृपया पुनः प्रयास करें।";
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          resultBox.innerHTML = "त्रुटि हुई। कृपया नेटवर्क कनेक्शन जांचें या बाद में पुनः प्रयास करें।";
+        });
     }
   </script>
 </body>
